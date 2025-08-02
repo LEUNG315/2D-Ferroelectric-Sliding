@@ -1,0 +1,213 @@
+# LAMMPS Input File: Ferroelectric Sliding and Phonon Analysis - Graphene System (ver.4)
+# Description: This file combines ferroelectric sliding simulation and phonon analysis functionalities, optimized for ver.4 phonon analysis tools
+
+#========== Initialization ==========
+units           metal        # Units: metal (length:Å, time:ps, energy:eV, temperature:K)
+dimension       3           # 3D simulation
+boundary        p p p       # Periodic boundary conditions in all directions
+atom_style      full        # Atom style: includes charge
+
+# Performance optimization: Adjust neighbor list parameters
+neighbor        2.0 bin      # Use bin method to accelerate neighbor list build for large systems
+neigh_modify    delay 5 every 1 check yes  # Delayed updates to save computational resources
+
+# Performance optimization: Set processor grid
+processors * * * # Use default processor allocation
+
+# Simulation timestep (kept small for phonon data)
+timestep        0.0005      # 0.5 fs for better stability
+
+#========== Atomic Structure ==========
+# Create graphene lattice structure
+lattice custom 2.4768 a1 1.0 0.0 0.0 a2 0.0 1.732 0.0 a3 0.0 0.0 1.3727 &
+        basis 0.0 0.33333 0.0 &
+        basis 0.0 0.66667 0.0 &
+        basis 0.5 0.16667 0.0 &
+        basis 0.5 0.83333 0.0 
+
+# Create simulation box and atoms
+region box block 0 20 0 15 0 1.9
+create_box 2 box
+
+# Create bilayer graphene
+create_atoms 1 box
+
+# Set atomic masses (carbon atoms)
+mass 1 12.0
+mass 2 12.0
+
+# Adjust box size in z direction
+change_box all z delta -2 15 units box
+
+# Define atom groups
+region bottom block INF INF INF INF INF 0.5 units box
+region top block INF INF INF INF 1.4 INF units box
+group bottom region bottom
+group top region top
+group mobile subtract all bottom
+
+# Distinguish top and bottom layers by type
+set region bottom type 1
+set region top type 2
+
+#========== Force Field Setup ==========
+# Set interatomic potential
+pair_style hybrid/overlay airebo 3.0 coul/long 12.0
+pair_coeff * * airebo CH.airebo C C
+pair_coeff * * coul/long
+
+# Set atom charges
+set group bottom charge -0.1
+set group top charge 0.1
+
+# Long-range Coulomb interactions - Optimize PPPM parameters for balance between accuracy and speed
+kspace_style    pppm 1.0e-4
+kspace_modify   mesh 32 32 32 order 5
+kspace_modify   diff ad  # Use analytical differentiation for better precision
+
+#========== Output Settings ==========
+# Define output frequency
+thermo 100
+thermo_style custom step temp pe ke etotal press vol cpu
+thermo_modify flush yes # Force output writing to avoid data loss
+
+#========== Stage 1: System Optimization ==========
+# Energy minimization
+fix 1 bottom setforce 0.0 0.0 0.0
+dump min all atom 100 dump.minimize
+min_style cg     # Use conjugate gradient method
+minimize 1.0e-6 1.0e-6 5000 10000
+undump min
+
+# Set initial temperature
+velocity all create 300.0 4928459 dist gaussian
+
+# NVT equilibration
+fix 2 mobile nvt temp 300.0 300.0 0.1
+run 10000
+unfix 2
+
+# Define sliding variables
+variable run_step equal 50000  # Sliding simulation steps - increased to 50000
+
+# Reset timestep
+reset_timestep 0
+
+#========== Stage 2: Ferroelectric Sliding Simulation ==========
+# Add time integrator and temperature control
+compute temp_compute mobile temp
+fix nve1 mobile nve
+
+# Set thermostat
+fix thermostat mobile nvt temp 300.0 300.0 0.05
+
+# Set temperature calculation for thermostat
+fix_modify thermostat temp temp_compute
+
+# Apply electric field and shear force to induce ferroelectric sliding
+variable        E_strength  equal 0.05                     # Electric field strength (V/Å)
+variable        omega       equal 2*PI/5000               # Rotating electric field angular frequency (1 cycle per 5000 steps)
+
+# Calculate cyclic variables
+variable        step equal "step"
+variable        time equal "dt*step"
+variable        Ex equal "v_E_strength*cos(v_omega*time)"
+variable        Ey equal "v_E_strength*sin(v_omega*time)"
+fix efield_rotate mobile efield v_Ex v_Ey 0.0
+
+# Add shear force
+fix shear mobile addforce 0.01 0.01 0.0 
+
+# Calculate displacement and polarization
+compute displacement_sliding mobile displace/atom
+compute polarization all reduce sum c_displacement_sliding[1] c_displacement_sliding[2] c_displacement_sliding[3]
+fix avg_pol all ave/time 100 1 100 c_polarization[1] c_polarization[2] c_polarization[3] file polarization.txt
+
+# Output energy information to file
+fix energy all print 100 "${step} $(pe) $(ke) $(etotal)" file energy.txt
+
+# Increase temperature output frequency to monitor system stability
+thermo 100
+thermo_style custom step temp pe ke etotal press vol
+
+# Output ferroelectric sliding trajectory
+dump sliding all custom 100 dump.ferroelectric id type x y z vx vy vz fx fy fz
+dump_modify sliding sort id
+
+# Run sliding simulation
+run ${run_step}
+
+# Remove sliding-related fixes and dumps
+unfix efield_rotate
+unfix shear
+unfix avg_pol
+unfix energy
+unfix nve1
+unfix thermostat
+undump sliding
+
+# Save post-sliding configuration
+write_data final_sliding.data
+
+# Output sliding simulation statistics
+print "Ferroelectric sliding simulation completed!"
+print "Sliding simulation time: $(dt)*${run_step} ps"
+print "Average temperature: $(temp) K"
+print "Final potential energy: $(pe) eV"
+
+#========== Stage 3: Phonon Analysis Preparation ==========
+# Define phonon analysis variables
+variable dump_freq equal 100   # Changed phonon data output frequency to 100
+variable total_steps equal 100000  # Increased phonon simulation total steps to 100000
+
+# Reset timestep for phonon analysis preparation
+reset_timestep 0
+
+# Re-equilibrate system
+fix nvt_equil mobile nvt temp 300.0 300.0 0.1
+run 5000
+unfix nvt_equil
+
+print "Transitioning to phonon analysis stage..."
+
+#========== Stage 4: Phonon Analysis Data Collection ==========
+# 1. Calculate displacements
+compute displace all displace/atom
+
+# 2. Output positions, velocities, forces (suitable for ver.4 phonon analysis tools)
+dump phonon all custom 20 dump.phonon id type x y z vx vy vz fx fy fz
+dump_modify phonon sort id
+
+# 3. Lightweight dump with only velocity data (for VACF analysis)
+dump velocity_data all custom ${dump_freq} dump.velocity id type vx vy vz
+dump_modify velocity_data sort id
+
+# 4. Heat flux calculation
+compute myKE all ke/atom
+compute myPE all pe/atom
+compute myStress all stress/atom NULL virial
+compute flux all heat/flux myKE myPE myStress
+fix flux_out all ave/time 2 5 100 c_flux[1] c_flux[2] c_flux[3] file heatflux.dat mode scalar
+
+# Run phonon analysis NVE simulation
+fix fixed bottom setforce 0.0 0.0 0.0  # Fix bottom layer
+fix nve mobile nve                     # NVE integration for top layer
+
+# Production phase
+print "Starting phonon analysis production simulation..."
+run ${total_steps}
+
+#========== Post-processing ==========
+# Remove all fixes and dumps
+unfix fixed
+unfix nve
+unfix flux_out
+undump phonon
+undump velocity_data
+
+# Output phonon analysis statistics
+print "Phonon analysis simulation completed!"
+print "Total simulation time: $(time) ps"
+print "Average temperature: $(temp) K"
+print "Final energy: $(etotal) eV"
+print "All simulation processes completed! Please use ver.4 phonon analysis tools to process the output data." 
