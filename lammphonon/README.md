@@ -4,7 +4,7 @@ LAMMPhonon是一个用于LAMMPS分子动力学模拟的声子分析工具包，�
 
 作者: 梁树铭 (Shuming Liang)  
 邮箱: lsm315@mail.ustc.edu.cn  
-电话: 18256949203
+电话: 18189209026
 
 ## 功能特点
 
@@ -117,7 +117,7 @@ sliding_distance = sliding_analyzer.calculate_sliding_distance(
 如果您在研究中使用了LAMMPhonon，请引用：
 
 ```
-Liang, S. (2025). LAMMPhonon: A toolkit for phonon analysis in LAMMPS simulations.
+Liang, SM. (2025). LAMMPhonon: A toolkit for phonon analysis in LAMMPS simulations.
 ```
 
 ## 许可证
