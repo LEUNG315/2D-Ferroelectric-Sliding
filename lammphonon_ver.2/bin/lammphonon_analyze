@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+LAMMPhonon Analysis Script
+
+Command-line interface for phonon analysis
+
+Author: Shuming Liang (梁树铭)
+Email: lsm315@mail.ustc.edu.cn
+Phone: 18256949203
+"""
+
+import sys
+from lammphonon.menu.command_line import main
+
+if __name__ == "__main__":
+    sys.exit(main()) 

@@ -1,0 +1,2 @@
+[console_scripts]
+lammphonon = lammphonon.menu.main_menu:main
