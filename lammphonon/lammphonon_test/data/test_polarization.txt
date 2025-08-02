@@ -1,0 +1,5 @@
+# Time-averaged data for fix avg_pol
+# TimeStep c_polarization[1] c_polarization[2] c_polarization[3]
+0 0 3.46945e-15 0
+100 223.474 195.056 -26.5821
+200 591.114 501.74 -24.7203 

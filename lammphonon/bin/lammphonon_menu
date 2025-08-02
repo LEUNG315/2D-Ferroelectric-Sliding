@@ -1,0 +1,80 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+LAMMPhonon 交互式菜单启动脚本
+"""
+
+import os
+import sys
+import argparse
+
+# 将脚本所在目录的上级目录添加到路径中，以便导入lammphonon包
+script_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(script_dir)
+sys.path.insert(0, parent_dir)
+
+from lammphonon.menu import MainMenu
+
+
+def parse_args():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(
+        description='LAMMPhonon - LAMMPS声子分析工具包'
+    )
+    parser.add_argument(
+        '--version', action='store_true',
+        help='显示版本信息'
+    )
+    parser.add_argument(
+        '--output-dir', type=str, default='~/lammphonon_results',
+        help='设置输出目录'
+    )
+    parser.add_argument(
+        '--debug', action='store_true',
+        help='启用调试模式'
+    )
+    
+    return parser.parse_args()
+
+
+def main():
+    """Main function"""
+    # 解析命令行参数
+    args = parse_args()
+    
+    # 如果只是显示版本信息，则输出后退出
+    if args.version:
+        import lammphonon
+        print(f"LAMMPhonon 版本: {lammphonon.__version__}")
+        print(f"作者: {lammphonon.__author__}")
+        print(f"邮箱: {lammphonon.__email__}")
+        return
+    
+    # 设置输出目录
+    output_dir = os.path.expanduser(args.output_dir)
+    
+    # 创建并运行主菜单
+    menu = MainMenu()
+    menu.coordinator.set_config('output_dir', output_dir)
+    
+    # 设置调试模式
+    if args.debug:
+        menu.coordinator.set_config('debug', True)
+        import logging
+        logging.getLogger().setLevel(logging.DEBUG)
+    
+    try:
+        menu.run()
+    except KeyboardInterrupt:
+        print("\n程序被用户中断")
+    except Exception as e:
+        import traceback
+        print(f"发生错误: {str(e)}")
+        if args.debug:
+            traceback.print_exc()
+    
+    print("程序已退出")
+
+
+if __name__ == "__main__":
+    main() 

@@ -1,0 +1,5 @@
+# Time-averaged data for fix flux_out
+# TimeStep c_flux[1] c_flux[2] c_flux[3]
+0 0 0 0
+100 223.474 195.056 -26.5821
+200 591.114 501.740 -24.7203 
