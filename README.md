@@ -103,11 +103,11 @@ sliding_distance = sliding_analyzer.calculate_sliding_distance()
 如果您在研究中使用了LAMMPhonon，请引用：
 
 ```bibtex
-@software{liang2023lammphonon,
+@software{liang2025lammphonon,
   title={LAMMPhonon: A toolkit for phonon analysis in LAMMPS simulations},
   author={Liang, Shuming},
-  year={2023},
-  url={https://github.com/liangshuming/lammphonon}
+  year={2025},
+  url={https://github.com/LEUNG315/2D-Ferroelectric-Sliding}
 }
 ```
 
