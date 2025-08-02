@@ -4,7 +4,7 @@ LAMMPhonon是一个用于LAMMPS分子动力学模拟的声子分析工具包，�
 
 作者: 梁树铭 (Shuming Liang)  
 邮箱: lsm315@mail.ustc.edu.cn  
-电话: 18256949203
+电话: 18189209026
 
 ## 功能特点
 
@@ -40,7 +40,7 @@ LAMMPhonon是一个用于LAMMPS分子动力学模拟的声子分析工具包，�
 ### 从源代码安装
 
 ```bash
-git clone https://github.com/liangshuming/lammphonon.git
+git clone https://github.com/LEUNG315/2D-Ferroelectric-Sliding.git
 cd lammphonon
 pip install -e .
 ```
@@ -199,7 +199,7 @@ freqs, dos_evolution, times = temporal_analyzer.calculate_time_resolved_dos(
 如果您在研究中使用了LAMMPhonon，请引用：
 
 ```
-Liang, S. (2023). LAMMPhonon: A toolkit for phonon analysis in LAMMPS simulations.
+Liang, SM. (2025). LAMMPhonon: A toolkit for phonon analysis in LAMMPS simulations.
 ```
 
 ## 许可证
