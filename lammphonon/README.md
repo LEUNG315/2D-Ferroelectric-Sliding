@@ -25,7 +25,7 @@ LAMMPhonon是一个用于LAMMPS分子动力学模拟的声子分析工具包，�
 ### 从源代码安装
 
 ```bash
-git clone https://github.com/liangshuming/lammphonon.git
+git clone https://github.com/LEUNG315/2D-Ferroelectric-Sliding.git
 cd lammphonon
 pip install -e .
 ```
@@ -117,7 +117,7 @@ sliding_distance = sliding_analyzer.calculate_sliding_distance(
 如果您在研究中使用了LAMMPhonon，请引用：
 
 ```
-Liang, S. (2023). LAMMPhonon: A toolkit for phonon analysis in LAMMPS simulations.
+Liang, S. (2025). LAMMPhonon: A toolkit for phonon analysis in LAMMPS simulations.
 ```
 
 ## 许可证
