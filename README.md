@@ -32,7 +32,7 @@
 
 ```bash
 # 从源代码安装
-git clone https://github.com/liangshuming/lammphonon.git
+git clone https://github.com/LEUNG315/2D-Ferroelectric-Sliding.git
 cd lammphonon
 pip install -e .
 
